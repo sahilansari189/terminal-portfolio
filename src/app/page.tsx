@@ -368,7 +368,7 @@ export default function TerminalPortfolio() {
 
             {currentSection === "projects" && (
               <div className="my-6 p-3 border border-purple-600 bg-purple-900/10 text-purple-400 text-sm">
-                → Featured projects and work samples. Links are placeholder - update with real URLs.
+                → Featured projects and work samples.
               </div>
             )}
 
