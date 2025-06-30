@@ -1,103 +1,431 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import type React from "react"
+import { useState, useEffect, useRef } from "react"
+import LoadingScreenComponent from "@/components/loading-screen"
+import WhoamiOutput from "@/components/sections/whoami-output"
+import AboutOutput from "@/components/sections/about-output"
+import AboutFullOutput from "@/components/sections/about-full-output"
+import SkillsOutput from "@/components/sections/skills-output"
+import ProjectsOutput from "@/components/sections/projects-output"
+import ExperienceOutput from "@/components/sections/experience-output"
+import ContactOutput from "@/components/sections/contact-output"
+import LsOutput from "@/components/sections/ls-output"
+import HelpOutput from "@/components/sections/help-output"
+
+type Section = "home" | "skills" | "projects" | "experience" | "contact"
+
+interface Command {
+  input: string
+  output: React.ReactNode
+  timestamp: Date
+}
+
+export default function TerminalPortfolio() {
+  const [currentSection, setCurrentSection] = useState<Section>("home")
+  const [commands, setCommands] = useState<Command[]>([])
+  const [currentInput, setCurrentInput] = useState("")
+  const [suggestions, setSuggestions] = useState<string[]>([])
+  const [suggestionIndex, setSuggestionIndex] = useState(-1)
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const terminalRef = useRef<HTMLDivElement>(null)
+
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadingStep, setLoadingStep] = useState(0)
+  const [loadingText, setLoadingText] = useState("")
+
+  // Available commands for autocompletion
+  const availableCommands = [
+    "whoami",
+    "cat about.txt",
+    "cat about.txt --full",
+    "cd /home",
+    "cd /skills",
+    "cd /projects",
+    "cd /experience",
+    "cd /contact",
+    "contact",
+    "ls",
+    "help",
+    "clear",
+  ]
+
+  useEffect(() => {
+    // Initialize with whoami and cat about.txt commands
+    setCommands([
+      {
+        input: "whoami",
+        output: <WhoamiOutput />,
+        timestamp: new Date(),
+      },
+      {
+        input: "cat about.txt",
+        output: <AboutOutput />,
+        timestamp: new Date(),
+      },
+    ])
+  }, [])
+
+  useEffect(() => {
+    if (terminalRef.current) {
+      terminalRef.current.scrollTop = terminalRef.current.scrollHeight
+    }
+  }, [commands])
+
+  useEffect(() => {
+    const loadingSequence = [
+      "Initializing Terminal v1.0...",
+      "Loading kernel: sahil_portfolio_os",
+      "Mounting file systems...",
+      "Starting network services...",
+      "Loading user profile...",
+      "Initializing shell environment...",
+      "Setting up command history...",
+      "Loading portfolio data...",
+      "Terminal ready!",
+    ]
+
+    let currentStep = 0
+    const interval = setInterval(() => {
+      if (currentStep < loadingSequence.length) {
+        setLoadingText(loadingSequence[currentStep])
+        setLoadingStep(currentStep)
+        currentStep++
+      } else {
+        clearInterval(interval)
+        setTimeout(() => {
+          setIsLoading(false)
+        }, 1000)
+      }
+    }, 800)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  // Update suggestions based on current input
+  useEffect(() => {
+    if (currentInput.trim()) {
+      const filtered = availableCommands.filter((cmd) => cmd.toLowerCase().startsWith(currentInput.toLowerCase()))
+      setSuggestions(filtered)
+      setShowSuggestions(filtered.length > 0)
+    } else {
+      setSuggestions([])
+      setShowSuggestions(false)
+    }
+    setSuggestionIndex(-1)
+  }, [currentInput])
+
+  const clearAndShowSection = (sectionOutput: React.ReactNode, sectionName: string) => {
+    // Clear previous commands and show only the new section
+    setCommands([
+      {
+        input: `cd /${sectionName}`,
+        output: sectionOutput,
+        timestamp: new Date(),
+      },
+    ])
+  }
+
+  const handleCommand = (cmd: string) => {
+    const trimmedCmd = cmd.trim().toLowerCase()
+    let output: React.ReactNode = null
+
+    switch (trimmedCmd) {
+      case "whoami":
+        output = <WhoamiOutput />
+        setCommands((prev) => [
+          ...prev,
+          {
+            input: cmd,
+            output,
+            timestamp: new Date(),
+          },
+        ])
+        return
+      case "cat about.txt":
+        output = <AboutOutput />
+        setCommands((prev) => [
+          ...prev,
+          {
+            input: cmd,
+            output,
+            timestamp: new Date(),
+          },
+        ])
+        return
+      case "cat about.txt --full":
+        output = <AboutFullOutput />
+        setCommands((prev) => [
+          ...prev,
+          {
+            input: cmd,
+            output,
+            timestamp: new Date(),
+          },
+        ])
+        return
+      case "cd /home":
+      case "cd home":
+        setCurrentSection("home")
+        // Clear and show home section (whoami + about)
+        setCommands([
+          {
+            input: "whoami",
+            output: <WhoamiOutput />,
+            timestamp: new Date(),
+          },
+          {
+            input: "cat about.txt",
+            output: <AboutOutput />,
+            timestamp: new Date(),
+          },
+        ])
+        return
+      case "cd /skills":
+      case "cd skills":
+        setCurrentSection("skills")
+        clearAndShowSection(<SkillsOutput />, "skills")
+        return
+      case "cd /projects":
+      case "cd projects":
+        setCurrentSection("projects")
+        clearAndShowSection(<ProjectsOutput />, "projects")
+        return
+      case "cd /experience":
+      case "cd experience":
+        setCurrentSection("experience")
+        clearAndShowSection(<ExperienceOutput />, "experience")
+        return
+      case "cd /contact":
+      case "cd contact":
+      case "contact":
+        setCurrentSection("contact")
+        clearAndShowSection(<ContactOutput />, "contact")
+        return
+      case "ls":
+        output = <LsOutput />
+        break
+      case "help":
+        output = <HelpOutput />
+        break
+      case "clear":
+        // Reset to home section
+        setCurrentSection("home")
+        setCommands([
+          {
+            input: "whoami",
+            output: <WhoamiOutput />,
+            timestamp: new Date(),
+          },
+          {
+            input: "cat about.txt",
+            output: <AboutOutput />,
+            timestamp: new Date(),
+          },
+        ])
+        return
+      default:
+        output = <div className="text-red-400">Command not found: {cmd}</div>
+    }
+
+    setCommands((prev) => [
+      ...prev,
+      {
+        input: cmd,
+        output,
+        timestamp: new Date(),
+      },
+    ])
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Tab") {
+      e.preventDefault()
+
+      if (suggestions.length > 0) {
+        if (suggestionIndex === -1) {
+          // First tab - show first suggestion
+          setSuggestionIndex(0)
+          setCurrentInput(suggestions[0])
+        } else {
+          // Cycle through suggestions
+          const nextIndex = (suggestionIndex + 1) % suggestions.length
+          setSuggestionIndex(nextIndex)
+          setCurrentInput(suggestions[nextIndex])
+        }
+      }
+    } else if (e.key === "ArrowUp" && showSuggestions) {
+      e.preventDefault()
+      if (suggestions.length > 0) {
+        const newIndex = suggestionIndex <= 0 ? suggestions.length - 1 : suggestionIndex - 1
+        setSuggestionIndex(newIndex)
+        setCurrentInput(suggestions[newIndex])
+      }
+    } else if (e.key === "ArrowDown" && showSuggestions) {
+      e.preventDefault()
+      if (suggestions.length > 0) {
+        const newIndex = (suggestionIndex + 1) % suggestions.length
+        setSuggestionIndex(newIndex)
+        setCurrentInput(suggestions[newIndex])
+      }
+    } else if (e.key === "Escape") {
+      setShowSuggestions(false)
+      setSuggestionIndex(-1)
+    }
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (currentInput.trim()) {
+      handleCommand(currentInput)
+      setCurrentInput("")
+      setShowSuggestions(false)
+      setSuggestionIndex(-1)
+    }
+  }
+
+  const handleTabClick = (section: Section) => {
+    const command = `cd /${section}`
+    setCurrentInput(command)
+    handleCommand(command)
+  }
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setCurrentInput(suggestion)
+    setShowSuggestions(false)
+    setSuggestionIndex(-1)
+    inputRef.current?.focus()
+  }
+
+  if (isLoading) {
+    return <LoadingScreenComponent loadingText={loadingText} loadingStep={loadingStep} />
+  }
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-black p-4">
+      <div className="max-w-6xl mx-auto">
+        {/* Terminal Container with Green Border */}
+        <div className="border-2 border-green-500 bg-black text-green-400 font-mono">
+          {/* Terminal Header */}
+          <div className="border-b border-green-500 p-3">
+            <div className="text-sm">Terminal v1.0 | kernel: sahil_portfolio_os</div>
+          </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          {/* Navigation Tabs */}
+          <div className="p-4 text-center">
+            <div className="flex justify-center gap-6 text-sm">
+              {[
+                { section: "home" as Section, label: "cd /home" },
+                { section: "skills" as Section, label: "cd /skills" },
+                { section: "projects" as Section, label: "cd /projects" },
+                { section: "experience" as Section, label: "cd /experience" },
+                { section: "contact" as Section, label: "cd /contact" },
+              ].map(({ section, label }) => (
+                <button
+                  key={section}
+                  onClick={() => handleTabClick(section)}
+                  className={`hover:text-green-300 transition-colors underline ${
+                    currentSection === section ? "text-green-300" : "text-green-400"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Terminal Content */}
+          <div
+            ref={terminalRef}
+            className="p-4 min-h-[500px] max-h-[600px] overflow-y-auto relative terminal-scrollbar"
+            onClick={() => inputRef.current?.focus()}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            {/* Command History */}
+            {commands.map((command, index) => (
+              <div key={index} className="mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-green-400">$</span>
+                  <span className="text-green-400">{command.input}</span>
+                </div>
+                <div className="mt-2">{command.output}</div>
+              </div>
+            ))}
+
+            {/* Hint Box - Only show on home section */}
+            {currentSection === "home" && (
+              <div className="my-6 p-3 border border-yellow-600 bg-yellow-900/10 text-yellow-400 text-sm">
+                → Type: 'cat about.txt --full', or double click on the button for complete details
+              </div>
+            )}
+
+            {/* Section-specific hints */}
+            {currentSection === "skills" && (
+              <div className="my-6 p-3 border border-blue-600 bg-blue-900/10 text-blue-400 text-sm">
+                → Skills and technologies I work with. Type 'help' for more commands.
+              </div>
+            )}
+
+            {currentSection === "projects" && (
+              <div className="my-6 p-3 border border-purple-600 bg-purple-900/10 text-purple-400 text-sm">
+                → Featured projects and work samples. Links are placeholder - update with real URLs.
+              </div>
+            )}
+
+            {currentSection === "experience" && (
+              <div className="my-6 p-3 border border-cyan-600 bg-cyan-900/10 text-cyan-400 text-sm">
+                → Professional experience and career journey. Type 'cd /home' to return home.
+              </div>
+            )}
+
+            {currentSection === "contact" && (
+              <div className="my-6 p-3 border border-pink-600 bg-pink-900/10 text-pink-400 text-sm">
+                → Get in touch! Multiple ways to reach out and connect.
+              </div>
+            )}
+
+            {/* Autocompletion Suggestions */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="mb-4 p-2 border border-green-600 bg-green-900/10 rounded">
+                <div className="text-green-300 text-xs mb-2">Suggestions (Tab to cycle, ↑↓ to navigate):</div>
+                <div className="space-y-1">
+                  {suggestions.map((suggestion, index) => (
+                    <div
+                      key={suggestion}
+                      onClick={() => handleSuggestionClick(suggestion)}
+                      className={`text-sm cursor-pointer px-2 py-1 rounded ${
+                        index === suggestionIndex ? "bg-green-700 text-green-100" : "text-green-400 hover:bg-green-800"
+                      }`}
+                    >
+                      {suggestion}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Current Input */}
+            <form onSubmit={handleSubmit} className="flex items-center gap-2">
+              <span className="text-green-400">/{currentSection}$</span>
+              <input
+                ref={inputRef}
+                type="text"
+                value={currentInput}
+                onChange={(e) => setCurrentInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="flex-1 bg-transparent outline-none text-green-400 caret-green-400"
+                placeholder="Type command or press Tab for suggestions..."
+                autoFocus
+              />
+            </form>
+          </div>
+
+          {/* Footer */}
+          <div className="border-t border-green-500 p-3 text-center text-xs text-green-600">
+            © 2025 Sahil Ansari - Built with React + TypeScript | Runtime: Terminal.js
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
     </div>
-  );
+  )
 }

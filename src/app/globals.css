@@ -24,3 +24,125 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+/* Base terminal styling */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: "Courier New", monospace;
+  }
+}
+
+/* Custom scrollbar for terminal theme */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+  border: 1px solid #22c55e;
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #22c55e;
+  border-radius: 0;
+  border: 1px solid #16a34a;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #16a34a;
+}
+
+::-webkit-scrollbar-corner {
+  background: #000000;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #22c55e #000000;
+}
+
+/* Terminal specific scrollbar styling */
+.terminal-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #22c55e #000000;
+}
+
+.terminal-scrollbar::-webkit-scrollbar {
+  width: 12px;
+}
+
+.terminal-scrollbar::-webkit-scrollbar-track {
+  background: #000000;
+  border: 1px solid #22c55e;
+}
+
+.terminal-scrollbar::-webkit-scrollbar-thumb {
+  background: #22c55e;
+  border: 1px solid #16a34a;
+}
+
+.terminal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #16a34a;
+}
+
+/* Hide scrollbar arrows for cleaner look */
+.terminal-scrollbar::-webkit-scrollbar-button {
+  display: none;
+}
+
+/* Custom terminal cursor animation */
+@keyframes blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.terminal-cursor {
+  animation: blink 1s infinite;
+}
+
+/* Terminal text selection */
+::selection {
+  background: #22c55e;
+  color: #000000;
+}
+
+::-moz-selection {
+  background: #22c55e;
+  color: #000000;
+}
+
+/* Ensure terminal background is always black */
+.terminal-container {
+  background-color: #000000 !important;
+  color: #22c55e !important;
+}
+
+/* Terminal input styling */
+.terminal-input {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  color: #22c55e !important;
+  caret-color: #22c55e !important;
+}
+
+.terminal-input::placeholder {
+  color: #16a34a !important;
+  opacity: 0.7;
+}
