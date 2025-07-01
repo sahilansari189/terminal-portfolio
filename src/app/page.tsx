@@ -83,7 +83,7 @@ export default function TerminalPortfolio() {
       "Initializing shell environment...",
       "Setting up command history...",
       "Loading portfolio data...",
-      "Terminal ready!",
+      "Portfolio ready!",
     ]
 
     let currentStep = 0
@@ -309,7 +309,7 @@ export default function TerminalPortfolio() {
         <div className="border-2 border-green-500 bg-black text-green-400 font-mono">
           {/* Terminal Header */}
           <div className="border-b border-green-500 p-3">
-            <div className="text-sm">Terminal v1.0 | kernel: sahil_portfolio_os</div>
+            <div className="text-sm">Sahil Ansari's Portfolio | Terminal v1.0</div>
           </div>
 
           {/* Navigation Tabs */}
@@ -355,7 +355,7 @@ export default function TerminalPortfolio() {
             {/* Hint Box - Only show on home section */}
             {currentSection === "home" && (
               <div className="my-6 p-3 border border-yellow-600 bg-yellow-900/10 text-yellow-400 text-sm">
-                → Type: 'cat about.txt --full', or double click on the button for complete details
+                → Type: 'cat about.txt --full'
               </div>
             )}
 
@@ -414,7 +414,7 @@ export default function TerminalPortfolio() {
                 onChange={(e) => setCurrentInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 className="flex-1 bg-transparent outline-none text-green-400 caret-green-400"
-                placeholder="Type command or press Tab for suggestions..."
+                placeholder="Type command..."
                 autoFocus
               />
             </form>
@@ -422,7 +422,7 @@ export default function TerminalPortfolio() {
 
           {/* Footer */}
           <div className="border-t border-green-500 p-3 text-center text-xs text-green-600">
-            © 2025 Sahil Ansari - Built with React + TypeScript | Runtime: Terminal.js
+            © 2025 Sahil Ansari
           </div>
         </div>
       </div>
