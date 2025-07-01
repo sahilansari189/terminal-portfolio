@@ -34,7 +34,7 @@ export default function TerminalPortfolio() {
   const [isLoading, setIsLoading] = useState(true)
   const [loadingStep, setLoadingStep] = useState(0)
   const [loadingText, setLoadingText] = useState("")
-
+  const [originalInput, setOriginalInput] = useState("")
   // Available commands for autocompletion
   const availableCommands = [
     "whoami",
@@ -114,6 +114,7 @@ export default function TerminalPortfolio() {
       setShowSuggestions(false)
     }
     setSuggestionIndex(-1)
+    setOriginalInput("") 
   }, [currentInput])
 
   const clearAndShowSection = (sectionOutput: React.ReactNode, sectionName: string) => {
@@ -258,20 +259,41 @@ export default function TerminalPortfolio() {
     } else if (e.key === "ArrowUp" && showSuggestions) {
       e.preventDefault()
       if (suggestions.length > 0) {
+                // Store original input if not already stored
+        if (suggestionIndex === -1) {
+          setOriginalInput(currentInput)
+        }
         const newIndex = suggestionIndex <= 0 ? suggestions.length - 1 : suggestionIndex - 1
         setSuggestionIndex(newIndex)
-        setCurrentInput(suggestions[newIndex])
+       
       }
     } else if (e.key === "ArrowDown" && showSuggestions) {
       e.preventDefault()
       if (suggestions.length > 0) {
+               // Store original input if not already stored
+        if (suggestionIndex === -1) {
+          setOriginalInput(currentInput)
+        }
         const newIndex = (suggestionIndex + 1) % suggestions.length
         setSuggestionIndex(newIndex)
-        setCurrentInput(suggestions[newIndex])
+              // Don't change the input, just highlight
       }
-    } else if (e.key === "Escape") {
+    } else if (e.key === "Enter" && showSuggestions && suggestionIndex >= 0) {
+      e.preventDefault()
+      // Select the highlighted suggestion
+      setCurrentInput(suggestions[suggestionIndex])
       setShowSuggestions(false)
       setSuggestionIndex(-1)
+      setOriginalInput("")
+      
+    } else if (e.key === "Escape") {
+            // Restore original input if navigating
+      if (suggestionIndex >= 0 && originalInput) {
+        setCurrentInput(originalInput)
+      }
+      setShowSuggestions(false)
+      setSuggestionIndex(-1)
+      setOriginalInput("")
     }
   }
 
@@ -304,16 +326,16 @@ export default function TerminalPortfolio() {
 
   return (
     <div className="min-h-screen bg-black p-4">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         {/* Terminal Container with Green Border */}
-        <div className="border-2 border-green-500 bg-black text-green-400 font-mono">
+                <div className="border-2 border-green-500 bg-black text-green-400 font-mono shadow-2xl rounded-lg overflow-hidden">
           {/* Terminal Header */}
-          <div className="border-b border-green-500 p-3">
+         <div className="border-b border-green-500 p-3 rounded-t-lg">
             <div className="text-sm">Sahil Ansari's Portfolio | Terminal v1.0</div>
           </div>
 
           {/* Navigation Tabs */}
-          <div className="p-4 text-center">
+                  <div className="p-4 text-center border-b border-green-500/30">
             <div className="flex justify-center gap-6 text-sm">
               {[
                 { section: "home" as Section, label: "cd /home" },
@@ -325,8 +347,8 @@ export default function TerminalPortfolio() {
                 <button
                   key={section}
                   onClick={() => handleTabClick(section)}
-                  className={`hover:text-green-300 transition-colors underline ${
-                    currentSection === section ? "text-green-300" : "text-green-400"
+                  className={`hover:text-green-300 transition-colors   ${
+                    currentSection === section? "text-green-300" : "text-green-400"
                   }`}
                 >
                   {label}
